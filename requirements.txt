@@ -4,3 +4,7 @@ uvicorn
 pydantic
 pydantic-settings
 apscheduler
+opencv-python
+numpy
+deepface
+tf-keras

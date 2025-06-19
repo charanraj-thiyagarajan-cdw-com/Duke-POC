@@ -5,6 +5,9 @@ from typing import Optional
 from app.services.avigilon_api import get_cameras_service
 from app.services.media_api import get_media_service
 import base64
+import numpy as np
+import cv2
+from deepface import DeepFace
 
 
 settings = get_settings()
@@ -119,6 +122,17 @@ async def fetch_all_face_events(from_time: str, to_time: str):
             media_resp = await get_media_service(flat_item["cameraId"], flat_item["faceTimeStamp"], "jpeg")
             image_base64 = base64.b64encode(media_resp.content).decode("utf-8")
             flat_item["imageBaseString"] = image_base64
+            if image_base64:
+                try:
+                    image_bytes = base64.b64decode(image_base64)
+                    np_arr = np.frombuffer(image_bytes, np.uint8)
+                    img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+                    if img is not None:
+                        faces = DeepFace.represent(img_path=img, enforce_detection=False, model_name="Facenet512")
+                        embeddings = [face["embedding"] for face in faces]
+                        flat_item["embeddings"] = embeddings
+                except Exception as e:
+                    logger.error(f"Face embedding fetch failed: {e}")
             flat_results.append(flat_item)
         if token:
             resp = await search_by_description_service(token=token)
