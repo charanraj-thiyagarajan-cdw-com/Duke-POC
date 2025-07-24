@@ -34,3 +34,4 @@ def start_scheduler():
     scheduler.add_job(all_face_events_fetch, 'cron', hour=0, minute=30, misfire_grace_time=60)
     scheduler.start()
     logger.info("Face events scheduler started (runs daily at 12:30am)")
+    # pass
